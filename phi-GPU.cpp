@@ -332,8 +332,8 @@ int main(int argc, char *argv[]){
 		assert(nbody/n_proc <= N_MAX_loc);
 		if(inp.fail()) MPI_Abort(MPI_COMM_WORLD, -2);
 
-		// se lee el archivo de entrada y se guardan los valores en ptcl
-		for(int i=0; i<nbody; i++){
+		// Paso 0: se lee el archivo de entrada y se guardan los valores en ptcl
+		for(int i=0; i<nbody; i++){ //O(n)
 			Particle &p = ptcl[i];
 			inp >> p.id >> p.mass >> p.pos >> p.vel;
 			p.t = time_cur;
