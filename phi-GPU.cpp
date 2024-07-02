@@ -582,7 +582,7 @@ int main(int argc, char *argv[]){
 		double t3;
 
 		//Paso 6: recalcula la fuerza local de las partículas que se van a actualizar en este paso
-		calc_force(ni, nj, eps2, ipred, jpred, force_tmp, t3, t_isend, t_recv);
+		calc_force(ni, nj, eps2, ipred, jpred, force_tmp, t3, t_isend, t_recv); //O(n^2/p)
 		
 		//Paso 7: Nuevamente, se suman las fuerzas locales de todas las partículas y las guarda en force
 		double t4 = wtime();

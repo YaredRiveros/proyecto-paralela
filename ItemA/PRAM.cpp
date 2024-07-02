@@ -48,11 +48,9 @@ int main(int argc, char *argv[]){
     Predictor *jpred = Predictor::allocate(N_MAX_loc); //tamaño máximo de partículas por proceso
 	Predictor *ipred = Predictor::allocate(N_MAX); //tamaño máximo de partículas total
 
-    #pragma omp parallel for
 		for(int j=0; j<nj; j++){ //O(n/p)
 			jpred[j] = Predictor(time_cur, Jparticle(ptcl[j+jstart])); //cada proceso toma una porción distinta de ptcl
 		}
-    #pragma omp parallel for
 		for(int i=0; i<ni; i++){ //O(n)
 			ipred[i] = Predictor(time_cur, Jparticle(ptcl[i])); //todos los procesos toman la totalidad de ptcl
 		}
@@ -60,10 +58,10 @@ int main(int argc, char *argv[]){
     //en este punto cada proceso tiene distinto jpred y el mismo ipred
 
     // Paso 4: cada proceso calcula fuerza para sus partículas y la guarda en force_tmp
-    calc_force(ni, nj, eps2, ipred, jpred, force_tmp); //O(n)
+    calc_force(ni, nj, eps2, ipred, jpred, force_tmp); //O(n^2/p)
 
     //Paso 5: todos los procesos suman sus fuerzas y lo guardan en el array force
-    //O(p*log(p)*(alpha+(n/p)*beta)). OJO: n'=n/p porque se suman arrays de objetos Force
+    //O(log(p)*(alpha+(7n)*beta)). OJO: n'=7n porque nword=7 en la clase Force
     MPI_Allreduce(force_tmp, force, ni*Force::nword, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
     //Paso 6: todos los procesos actualizan sus partículas con la fuerza calculada
@@ -84,24 +82,22 @@ int main(int argc, char *argv[]){
         int ni = n_act;
 
         //actualizar objetos predictores
-    #pragma omp parallel for
         for(int i=0; i<ni; i++){ //itera el # de partículas que se van a actualizar en este paso. O(n)
             ipred[i] = Predictor(min_t, ptcl[active_list[i]])
         }
 
         //recalcular fuera local de las partículas considerando los nuevos predictores
-        calc_force(ni, nj, eps2, ipred, jpred, force_tmp); //O(n)
+        calc_force(ni, nj, eps2, ipred, jpred, force_tmp); //O(n^2/p)
 
         //nuevamente se suman las fuerzas de cada proceso
-        //O(p*log(p)*(alpha+(n/p)*beta)). OJO: n'=n/p porque se suman arrays de objetos Force
+        //O(log(p)*(alpha+(7n)*beta)). OJO: n'=7n porque nword=7 en la clase Force
         MPI_Allreduce(force_tmp, force, ni*Force::nword, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
         //actualizar las partículas con la nueva fuerza calculada
-        #pragma omp parallel for
-            for(int i=0; i<ni; i++){ //O(n)
-                Particle &p = ptcl[active_list[i]];
-                p.correct(dt_min, dt_max, eta, force[i]); //O(1)
-            }
+        for(int i=0; i<ni; i++){ //O(n)
+            Particle &p = ptcl[active_list[i]];
+            p.correct(dt_min, dt_max, eta, force[i]); //O(1)
+        }
 
         //Impresión de resultados de esta iteración
         energy(myRank); //O(n)
