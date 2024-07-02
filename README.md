@@ -31,3 +31,7 @@ T_p = #_intervalos_tiempo( O(n^2/p) + O(log(p)*(alpha+n*beta)))
  = O(n^2/p) + O(log(p)*(alpha+n*beta)) = O(n^2/p) + O(logp+nlogp) = O(n^2/p) + O(nlogp) = O(n^2/p + nlogp)
 
 ![comparacion_8k](ItemB/comparacion_8k.png)
+
+![comparacion_9k](ItemB/comparacion_9k.png)
+
+![comparacion_16k](ItemB/comparacion_16k.png)
