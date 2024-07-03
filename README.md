@@ -47,8 +47,8 @@ Se utilizó el cálculo de la velocidad en Flops/s que ya estaba implementada en
 
 Sin escala logarítmica:
 
-![comparacion_8k](ItemC/comparacion.png)
+![itemc_sinEscala](ItemC/comparacion.png)
 
 Con escala logarítimica:
 
-![comparacion_9k](ItemC/comparacion_escalaLog.png)
+![itemc_conEscala](ItemC/comparacion_escalaLog.png)
