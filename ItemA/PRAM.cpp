@@ -30,11 +30,11 @@ int main(int argc, char *argv[]){
     }
 
     //Envío de n_body a todos los procesos
-    //O(p*(alpha+beta))
+    //O(logp*(alpha+beta))
     MPI_Bcast(&n_body, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
     //Envío de todas las partículas a los procesos
-    //O(p*(alpha+n*beta))
+    //O(logp*(alpha+n*beta))
     MPI_Bcast(ptcl, nbody*sizeof(Particle), MPI_CHAR, 0, MPI_COMM_WORLD);
 
     // Paso 2: se divide el dominio del problema. Cada proceso tomará una porción distinta de ptcl utilizando jstart y jend
