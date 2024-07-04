@@ -13,7 +13,7 @@ Para cambiar el tamaño del problema, se debe de ejecutar el siguiente comando:
 ## Item A: PRAM y complejidad teórica
 
 ### PRAM
-El PRAM lo puede encontrar en PRAM/PRAM.cpp. En éste comentamos la compleijidad de cada operación a detalle.
+El PRAM lo puede encontrar en ItemA/PRAM.cpp. En éste comentamos la compleijidad de cada operación a detalle.
 
 ### Complejidad teórica
 
