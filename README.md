@@ -43,6 +43,8 @@ Se valida la relación entre las curvas teórica y experimental obtenidas, pues 
 
 ![comparacion_16k](ItemB/conConstante/comparacion_16k.png)
 
+Note que aún existe una ligera diferencia entre las curvas teóricas y experimentales. Esto puede deberse a que en la complejidad teórica no consideramos varios bucles lineales presentes en el código original, lo que provoca que la curva teórica disminuya más rápidamente con p que la experimental.
+
 ## Item C: Medición de velocidad para distintos valores de n y p
 
 Se utilizó el cálculo de la velocidad en Flops/s que ya estaba implementada en el código (se calcula como la división del número de flops entre el tiempo de ejecución total del algoritmo) para medir las curvas de velocidad para distintos números de procesos dado un tamaño del problema n.
