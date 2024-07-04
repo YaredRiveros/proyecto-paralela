@@ -1,115 +1,87 @@
-#include <imp.h>
-#include <iostream>
+//PRAM para calcular la fuerza entre partículas, considerando
+// que el número de procesos p es menor que la cantidad de
+//elementos n
 
-using namespace std;
+//Input: arreglo de objetos Particle ptcl, número de partículas n,
+//número de procesos p
 
-//Sea n_body = n = número total de partículas (tamaño del problema)
+//Output: arreglo de partículas ptcl modificadas durante la simulación
 
-int main(int argc, char *argv[]){
-    //Paso 1: Inicialización
+//Algoritmo para un proceso p_i, tal que 0 <= i < p
 
-    MPI_Init(&argc, &argv);
-    int rank, size;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-    double n_body;
-    //se lee el balor de n_body de un archivo de entrada
-    //...
-    Particle ptcl[n_body];
+//sea jpred un arreglo de objetos Predictor de tamaño n/p
 
-    if(rank==0){
-        //inicialización de n_body leyendo el archivo de entrada (O(1))
-        //...
+//sea ipred un arreglo de objetos Predictor de tamaño n
 
-        ifstream inp("input.dat");
-        //Lectura de las partículas
-        for(int i=0;i<n_body;i++){ //O(n)
-            Particle &p = ptcl[i];
-			inp >> p.id >> p.mass >> p.pos >> p.vel;
-        }
-    }
+//se define inicio y fin del dominio para el proceso actual
+jstart = (p_i * n) / p; 
+jend   = ((1+p_i) * n) / p; 
 
-    //Envío de n_body a todos los procesos
-    //O(logp*(alpha+beta))
-    MPI_Bcast(&n_body, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+double dt = 0.125;
+double time_cur = 0.0;
+double t_end = 1;
 
-    //Envío de todas las partículas a los procesos
-    //O(logp*(alpha+n*beta))
-    MPI_Bcast(ptcl, nbody*sizeof(Particle), MPI_CHAR, 0, MPI_COMM_WORLD);
+while(time_cur <= t_end) do
+    for 1 <= i <= n/p do    //O(n/p)
+        jpred[i] = Predictor(ptcl[i+jstart])
 
-    // Paso 2: se divide el dominio del problema. Cada proceso tomará una porción distinta de ptcl utilizando jstart y jend
-    jstart = (myRank * nbody) / n_proc; 
-	jend   = ((1+myRank) * nbody) / n_proc; 
-	n_loc = jend - jstart; 
-	int nj = n_loc; //número de partículas por proceso
-	int ni = nbody;
+    for 1 <= i <= n do    //O(n)
+        ipred[i] = Predictor(ptcl[i])
 
-    // Paso 3: Cálculo de objetos predictores
-    Predictor *jpred = Predictor::allocate(N_MAX_loc); //tamaño máximo de partículas por proceso
-	Predictor *ipred = Predictor::allocate(N_MAX); //tamaño máximo de partículas total
 
-		for(int j=0; j<nj; j++){ //O(n/p)
-			jpred[j] = Predictor(time_cur, Jparticle(ptcl[j+jstart])); //cada proceso toma una porción distinta de ptcl
-		}
-		for(int i=0; i<ni; i++){ //O(n)
-			ipred[i] = Predictor(time_cur, Jparticle(ptcl[i])); //todos los procesos toman la totalidad de ptcl
-		}
-    
-    //en este punto cada proceso tiene distinto jpred y el mismo ipred
+    // sea force un arreglo de objetos Force de tamaño n
+    // sea force_tmp un arreglo de objetos Force de tamaño n/p
 
-    // Paso 4: cada proceso calcula fuerza para sus partículas y la guarda en force_tmp
-    calc_force(ni, nj, eps2, ipred, jpred, force_tmp); //O(n^2/p)
+    //O(n^2/p)
+    for 1 <= i <= n do
+        for 1 <= j <= n/p do
+            double dx = jpred[j].pos.x - ipred[i].pos.x;
+            double dy = jpred[j].pos.y - ipred[i].pos.y;
+            double dz = jpred[j].pos.z - ipred[i].pos.z;
+            double dvx = jpred[j].vel.x - ipred[i].vel.x;
+            double dvy = jpred[j].vel.y - ipred[i].vel.y;
+            double dvz = jpred[j].vel.z - ipred[i].vel.z;
 
-    //Paso 5: todos los procesos suman sus fuerzas y lo guardan en el array force
-    //O(log(p)*(alpha+(7n)*beta)). OJO: n'=7n porque nword=7 en la clase Force
-    MPI_Allreduce(force_tmp, force, ni*Force::nword, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+            double r2 = eps2 + dx*dx + dy*dy + dz*dz;
+            double rv = dx*dvx + dy*dvy + dz*dvz;
+            
+            if(r2 == eps2) continue;
+            double rinv2 = 1.0 / r2;
+            double rinv1 = sqrt(rinv2);
+            rv *= -3.0 * rinv2;
+            rinv1 *= jpred[j].mass;
+            double rinv3 = rinv1 * rinv2;
 
-    //Paso 6: todos los procesos actualizan sus partículas con la fuerza calculada
-    for(int i=0; i<ni; i++) //O(n)
-        ptcl[i].init(time_cur, force[i]);
+            pot += rinv1;
+            ax += rinv3 * dx;
+            ay += rinv3 * dy;
+            az += rinv3 * dz;
+            jx += rinv3 * (dvx + rv * dx);
+            jy += rinv3 * (dvy + rv * dy);
+            jz += rinv3 * (dvz + rv * dz);
 
-    // Paso 7: Calcula la energía hasta que se acabe el tiempo del experimento
+        force_tmp[i].acc.x = ax;
+        force_tmp[i].acc.y = ay;
+        force_tmp[i].acc.z = az;
+        force_tmp[i].jrk.x = jx;
+        force_tmp[i].jrk.y = jy;
+        force_tmp[i].jrk.z = jz;
+        force_tmp[i].pot = -pot;
 
-    //imprime solo primera fila del resultado
-	energy(myRank); //O(n)
+    //O(log(p)*(alpha+(7n)*beta))
+    Allreduce(force_tmp, force, n*7, DOUBLE, SUM, COMM_WORLD); //O(log(p)*(alpha+(7n)*beta)
 
-    //imprime el resto de filas del resultado
-    while(time_cur <= t_end){ //O(dt)
-        //hallar particulas se deben actualizar en este paso
-        n_act = hallar_num_particulas_a_actualizar(); //O(n)
-    
+    //O(n)
+    for 1 <= i <= n do
+        ptcl[i].acc = force[i].acc;
+        ptcl[i].jrk = force[i].jrk;
+        ptcl[i].pot = force[i].pot;
 
-        int ni = n_act;
+    time_cur += dt;
 
-        //actualizar objetos predictores
-        for(int i=0; i<ni; i++){ //itera el # de partículas que se van a actualizar en este paso. O(n)
-            ipred[i] = Predictor(min_t, ptcl[active_list[i]])
-        }
+endwhile
 
-        //recalcular fuera local de las partículas considerando los nuevos predictores
-        calc_force(ni, nj, eps2, ipred, jpred, force_tmp); //O(n^2/p)
+return ptcl;
 
-        //nuevamente se suman las fuerzas de cada proceso
-        //O(log(p)*(alpha+(7n)*beta)). OJO: n'=7n porque nword=7 en la clase Force
-        MPI_Allreduce(force_tmp, force, ni*Force::nword, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
-        //actualizar las partículas con la nueva fuerza calculada
-        for(int i=0; i<ni; i++){ //O(n)
-            Particle &p = ptcl[active_list[i]];
-            p.correct(dt_min, dt_max, eta, force[i]); //O(1)
-        }
 
-        //Impresión de resultados de esta iteración
-        energy(myRank); //O(n)
-
-        //actualizar tiempo
-        time_cur += dt_min; 
-    }
-
-    //Paso 8: Liberar memoria
-    delete[] jpred;
-    delete[] ipred;
-
-    MPI_Finalize();
-    return 0;
-}
