@@ -15,15 +15,36 @@ plt.plot(p, tiempos_8k, 'o-', label='n=8k', color='blue')
 plt.plot(p, tiempos_9k, 's-', label='n=9k', color='green')
 plt.plot(p, tiempos_16k, 'd-', label='n=16k', color='red')
 
+# curva ideal es 9.314 (velocidad para n=8k y p=1) multiplicado por el número de procesos aprox.
+curva_ideal = 9.314 * p
+
 # Curva ideal S = p
-plt.plot(p, p, 'k--', label='Curva Ideal S=p', color='purple')
+plt.plot(p, curva_ideal, 'k--', label='Curva Ideal', color='purple')
 
 plt.xlabel('p')
-plt.ylabel('Velocidad (Flops/s)')
+plt.ylabel('Velocidad (GFlops/s)')
 #escala logaritmica
 # plt.yscale('log')
 plt.title('Comparación de Velocidad para Diferentes Valores de n')
 plt.legend()
 plt.grid(True)
 plt.savefig('comparacion.png')
+plt.show()
+
+
+# Crear el gráfico con escala logaritmica
+plt.figure(figsize=(10, 6))
+plt.plot(p, tiempos_8k, 'o-', label='n=8k', color='blue')
+plt.plot(p, tiempos_9k, 's-', label='n=9k', color='green')
+plt.plot(p, tiempos_16k, 'd-', label='n=16k', color='red')
+# Curva ideal S = p
+plt.plot(p, curva_ideal, 'k--', label='Curva Ideal', color='purple')
+plt.xlabel('p')
+plt.ylabel('Velocidad (GFlops/s)')
+#escala logaritmica
+plt.yscale('log')
+plt.title('Comparación de Velocidad para Diferentes Valores de n')
+plt.legend()
+plt.grid(True)
+plt.savefig('comparacion_escalaLog.png')
 plt.show()

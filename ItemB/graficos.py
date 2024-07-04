@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.optimize import minimize
 
 # Datos experimentales
 p = np.array([1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13])
@@ -20,7 +21,7 @@ curva_teorica_16k = (n_16k**2 / p) + (n_16k * np.log(p))
 # Gráfico para n = 8k
 plt.figure(figsize=(10, 6))
 plt.plot(p, tiempos_8k, 'o-', label='Experimental n=8k')
-plt.plot(p, curva_teorica_8k, 's--', label='Teórica n=8k')
+plt.plot(p, curva_teorica_8k, 's--', label='Teórica n=8k (1/10^5)')
 plt.xlabel('p')
 plt.ylabel('Tiempo (s)')
 # escala log
@@ -28,7 +29,7 @@ plt.yscale('log')
 plt.title('Comparación Curva Experimental y Teórica para n=8k')
 plt.legend()
 plt.grid(True)
-plt.savefig('comparacion_8k.png')
+plt.savefig('sinConstante/comparacion_8k.png')
 plt.show()
 
 # Gráfico para n = 9k
@@ -42,7 +43,7 @@ plt.yscale('log')
 plt.title('Comparación Curva Experimental y Teórica para n=9k')
 plt.legend()
 plt.grid(True)
-plt.savefig('comparacion_9k.png')
+plt.savefig('sinConstante/comparacion_9k.png')
 plt.show()
 
 # Gráfico para n = 16k
@@ -56,5 +57,62 @@ plt.yscale('log')
 plt.title('Comparación Curva Experimental y Teórica para n=16k')
 plt.legend()
 plt.grid(True)
-plt.savefig('comparacion_16k.png')
+plt.savefig('sinConstante/comparacion_16k.png')
+plt.show()
+
+## Gráficos con constante que ajusta la curva teórica a la experimental con mínimos cuadrados
+
+# Función para calcular el error cuadrático medio
+def error(c, y_exp, y_teor):
+    return np.sum((y_exp - c * y_teor)**2)
+
+# Encontrar la constante de ajuste para n=8k
+res_8k = minimize(error, x0=1, args=(tiempos_8k, curva_teorica_8k))
+const_8k = res_8k.x[0]
+
+# Gráfico para n = 8k
+plt.figure(figsize=(10, 6))
+plt.plot(p, tiempos_8k, 'o-', label='Experimental n=8k')
+plt.plot(p, const_8k * curva_teorica_8k, 's--', label=f'Teórica n=8k ajustada (const={const_8k:.4f})')
+plt.xlabel('p')
+plt.ylabel('Tiempo (s)')
+plt.yscale('log')
+plt.title('Comparación Curva Experimental y Teórica Ajustada para n=8k')
+plt.legend()
+plt.grid(True)
+plt.savefig('conConstante/comparacion_8k.png')
+plt.show()
+
+# Encontrar la constante de ajuste para n=9k
+res_9k = minimize(error, x0=1, args=(tiempos_9k, curva_teorica_9k))
+const_9k = res_9k.x[0]
+
+# Gráfico para n = 9k
+plt.figure(figsize=(10, 6))
+plt.plot(p, tiempos_9k, 'o-', label='Experimental n=9k')
+plt.plot(p, const_9k * curva_teorica_9k, 's--', label=f'Teórica n=9k ajustada (const={const_9k:.4f})')
+plt.xlabel('p')
+plt.ylabel('Tiempo (s)')
+plt.yscale('log')
+plt.title('Comparación Curva Experimental y Teórica Ajustada para n=9k')
+plt.legend()
+plt.grid(True)
+plt.savefig('conConstante/comparacion_9k.png')
+plt.show()
+
+# Encontrar la constante de ajuste para n=16k
+res_16k = minimize(error, x0=1, args=(tiempos_16k, curva_teorica_16k))
+const_16k = res_16k.x[0]
+
+# Gráfico para n = 16k
+plt.figure(figsize=(10, 6))
+plt.plot(p, tiempos_16k, 'o-', label='Experimental n=16k')
+plt.plot(p, const_16k * curva_teorica_16k, 's--', label=f'Teórica n=16k ajustada (const={const_16k:.4f})')
+plt.xlabel('p')
+plt.ylabel('Tiempo (s)')
+plt.yscale('log')
+plt.title('Comparación Curva Experimental y Teórica Ajustada para n=16k')
+plt.legend()
+plt.grid(True)
+plt.savefig('conConstante/comparacion_16k.png')
 plt.show()

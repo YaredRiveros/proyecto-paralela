@@ -1,0 +1,12 @@
+
+cpu-4th:51127 terminated with signal 6 at PC=7fc7853f19fc SP=7fff21317e10.  Backtrace:
+/lib/x86_64-linux-gnu/libc.so.6(pthread_kill+0x12c)[0x7fc7853f19fc]
+/lib/x86_64-linux-gnu/libc.so.6(raise+0x16)[0x7fc78539d476]
+/lib/x86_64-linux-gnu/libc.so.6(abort+0xd3)[0x7fc7853837f3]
+/lib/x86_64-linux-gnu/libc.so.6(+0x2871b)[0x7fc78538371b]
+/lib/x86_64-linux-gnu/libc.so.6(+0x39e96)[0x7fc785394e96]
+./cpu-4th(+0x5fe6)[0x5646f1ef8fe6]
+./cpu-4th(+0x4801)[0x5646f1ef7801]
+/lib/x86_64-linux-gnu/libc.so.6(+0x29d90)[0x7fc785384d90]
+/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0x80)[0x7fc785384e40]
+./cpu-4th(+0x55b5)[0x5646f1ef85b5]

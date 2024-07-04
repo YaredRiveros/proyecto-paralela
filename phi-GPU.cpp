@@ -659,8 +659,9 @@ int main(int argc, char *argv[]){
 		printf("\n");
 		// double Gflops  = 57.0e-9*nbody*n_act_sum/(CPU_time_user - CPU_time_user0);
 		// double GflopsT = 57.0e-9*nbody*g6_calls*48/(CPU_time_user - CPU_time_user0);
-		double Gflops  = Particle::flops*1.e-9*double(nbody)*double(n_act_sum)/(CPU_time_real - CPU_time_real0);
+		double Gflops  = Particle::flops*1.e-9*double(nbody)*double(n_act_sum)/(CPU_time_real - CPU_time_real0); //item c: El profe quiere que la curva ideal esté por encima de la curva de velocidad. Dividir entre tiempo sin considerar comunicación para obtener la curva ideal de velocidad
 		// double GflopsT = Particle::flops*1.e-9*nbody*g6_calls*48/(CPU_time_real - CPU_time_real0);
+		printf("CPU_time = %.3f sec\n", CPU_time_real - CPU_time_real0);
 		printf("Real Speed = %.3f GFlops \n", Gflops);
 
 #ifdef PROFILE
@@ -677,6 +678,9 @@ int main(int argc, char *argv[]){
 		printf("comm :%12.4E%12.4E%12.4E\n", t_comm, t_comm/Timesteps*1.e6, t_comm/t_tot);
 		printf("corr :%12.4E%12.4E%12.4E\n", t_corr, t_corr/Timesteps*1.e6, t_corr/t_tot);
 		printf("tot  :%12.4E%12.4E%12.4E\n", t_tot, t_tot/Timesteps*1.e6, t_tot/t_tot);
+		
+		double Gflops_ideal = Particle::flops*1.e-9*double(nbody)*double(n_act_sum)/(t_force+ t_corr);
+		printf("\n\nIdeal Speed = %.3f GFlops \n", Gflops_ideal);
 		// double t_comm_avr = t_comm / Timesteps * 1.e6;
 		// printf("Comm time : %10.2E usec\n", t_comm_avr);
 #endif
