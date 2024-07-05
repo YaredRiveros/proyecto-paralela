@@ -58,3 +58,15 @@ Además, en cada gráfica se incluye la curva de velocidad ideal, que se calcula
 - Con escala logarítimica:
 
 ![itemc_conEscala](Itemc/comparacion_escalaLog.png)
+
+## Item D: Software de análisis de performance
+
+El programa brindara métricas de performance en base tiempos de ejecución para distintos valores de n y p. Concluye con si el algoritmo es escalable o no.
+
+Métricas de performance
+- Speedup / Velocidad (S = Ts / Tp)
+- Eficiencia (E = S / p)
+- Conclusiones sobre escalabilidad (E = 1 o S = O(p))
+
+(3D chart n vs p vs tiempo)
+
