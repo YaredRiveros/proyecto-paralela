@@ -22,14 +22,19 @@ class Analizer():
         experimental = []
         theorical = []
         print("Collecting data...")
-        for p in range(1, 14):
+        print(f"Running algorithm with 1 processor...")
+        data = [line.strip('\n') for line in os.popen(f"mpirun -np 1 ./cpu-4th")]
+        real_speed = Analizer.get_speed(data[-14])
+        ideal_speed = Analizer.get_speed(data[-1])
+        experimental.append(real_speed)
+        theorical.append(ideal_speed)
+        for p in range(2, 14):
             print(f"Running algorithm with {p} processors...")
             data = [line.strip('\n') for line in os.popen(f"mpirun -np {p} ./cpu-4th")]
             real_speed = Analizer.get_speed(data[-14])
-            ideal_speed = Analizer.get_speed(data[-1])
+            ideal_speed = theorical[0] * p
             experimental.append(real_speed)
             theorical.append(ideal_speed)
-        
         self.experimental = experimental
         self.theorical = theorical
 
@@ -45,15 +50,16 @@ class Analizer():
 
     def speedup_analysis(self):
         print("Speedup analysis")
+        ideal = self.theorical[0]
         for p in range(1, 14):
-            print(f"{p} processors: real speedup = {self.experimental[p - 1]}, ideal speedup = {self.theorical[p - 1]}")
+            print(f"{p} processors: real speedup = {self.experimental[p - 1]}, ideal speedup = {ideal * p}")
         plt.plot(range(1, 14), self.experimental)
         plt.plot(range(1, 14), self.theorical)
         plt.show()
 
 analizer = Analizer()
 analizer.get_data()
-# analizer.speedup_analysis()
+analizer.speedup_analysis()
 analizer.scalability_analysis()
 
 
