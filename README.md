@@ -2,13 +2,14 @@
 
 ## Compilación y ejecución
 Como indica en el enunciado, en este proyecto trabajaremos sin gpu. Para ello, el código proporcionado se utilizará del siguiente modo:
-- Compilar: make cpu-4th
-- Ejecutar: mpirun -np=<num_procesos> ./cpu-4th
+- Compilar: `make cpu-4th`
+- Ejecutar: `mpirun -np=<num_procesos> ./cpu-4th`
 
 Para cambiar el tamaño del problema, se debe de ejecutar el siguiente comando: 
-./gen-plum.exe <n> <np>
+`./gen-plum.exe <n> <np>`
 
-, de tal manera que el tamaño del problema sera N = n*np(kb/np), donde kb=1024.
+, de tal manera que el tamaño del problema sera $N = n(np)\left(\frac{kb}{np}\right)$, donde $kb=1024$.
+
 
 ## Item A: PRAM y complejidad teórica
 
@@ -20,9 +21,9 @@ El PRAM lo puede encontrar en ItemA/PRAM.cpp. En éste comentamos la compleijida
 OJO: a pesar de que el código contenga directiva pragma omp, el código no es híbrido (solo tiene MPI).
 
 Utilizando el PRAM realizado, la complejidad teórica a la que llegamos es 
-T_p(n,p) = O(n/p) + O(n) + O(n^2/p) + O(log(p)*(alpha+n*beta)) + O(n)
 
-= O(n^2/p) + O(nlog(p))
+$$ T_{p}(n,p) = O\left(\frac{n}{p}\right) + O(n) + O\left(\frac{n^2}{p}\right) + O\left
+((\alpha+n\beta)\log p\right) + O(n) = O\left(\frac{n^2}{p}\right) + O(n\log p) $$
 
 
 ## Item B: Medición de tiempo y comparación con curva teórica
