@@ -8,6 +8,7 @@ from tabulate import tabulate
 import similaritymeasures
 import numpy as np
 
+# Strong scalability
 
 class Analizer():
 
@@ -26,7 +27,7 @@ class Analizer():
         data = [line.strip('\n') for line in os.popen(f"mpirun -np 1 ./cpu-4th")]
         real_speed = re.search(r"(\d+\.\d+)", data[-14])
         real_speed = float(real_speed.group(1))
-        ideal_speed = re.search(r"(\d+\.\d+)", data[-1])
+        ideal_speed = re.search(r"(\d+\.\d+)", data[-14]) # Ideal Speed = 14.059 GFlops
         ideal_speed = float(ideal_speed.group(1))
         experimental.append(real_speed)
         theorical.append(ideal_speed)
@@ -73,7 +74,8 @@ class Analizer():
         print(tabulate(table_data, headers, tablefmt="pretty"))
 
         # Write conclusions
-        if pcm >= 10:
+        criterio = pcm >= 10
+        if criterio:
             print("The algorithm is scalable.")
         else:
             print("The algorithm is NOT scalable.")
@@ -112,7 +114,9 @@ class Analizer():
         print(tabulate(table_data, headers, tablefmt="pretty"))
 
         # Write conclusions
-        if pcm >= 10:
+        criterio = pcm >= 10
+
+        if criterio:
             print("The algorithm is scalable.")
         else:
             print("The algorithm is NOT scalable.")
