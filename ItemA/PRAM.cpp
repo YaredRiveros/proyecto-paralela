@@ -34,6 +34,9 @@ while(time_cur <= t_end) do
 
     //O(n^2/p)
     for 1 <= i <= n do
+        double ax=0, ay=0, az=0;
+		double jx=0, jy=0, jz=0;
+		double pot=0;
         for 1 <= j <= n/p do
             double dx = jpred[j].pos.x - ipred[i].pos.x;
             double dy = jpred[j].pos.y - ipred[i].pos.y;
