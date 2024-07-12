@@ -25,6 +25,16 @@ Utilizando el PRAM realizado, la complejidad teórica a la que llegamos es
 $$ T_{p}(n,p) = O\left(\frac{n}{p}\right) + O(n) + O\left(\frac{n^2}{p}\right) + O\left
 ((\alpha+n\beta)\log p\right) + O(n) = O\left(\frac{n^2}{p}\right) + O(n\log p) $$
 
+### Condición de escalabilidad
+
+Apartir del $T_p$ obtenemos expresiones algebraicas para el speedup (S) y eficiencia (E).
+
+$$S = \frac{T_s}{T_p}=\frac{n^2}{\frac{n^2}{p}+n\log p}=\frac{1}{\frac{1}{p}+\frac{\log p}{n}}$$
+
+$$E=\frac{S}{p}=\frac{1}{1+\frac{p\log p}{n}}$$
+
+La ultima expresión nos brinda información sobre cuan eficiente es el algoritmo para distintos tamaños de problema n y número de procesadores p. Observamos que, si mantenemos fijo n y aumentamos p, la eficiencia podría degradarse considerablemente. Por tanto, para que el algoritmo sea escalable, es decir $E=O(1),$ se debe cumplir que $n \propto p \log p$.
+
 
 ## Item B: Medición de tiempo y comparación con curva teórica
 
