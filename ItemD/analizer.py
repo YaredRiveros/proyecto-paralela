@@ -8,122 +8,172 @@ from tabulate import tabulate
 import similaritymeasures
 import numpy as np
 
-# Strong scalability
+class DataCollector():
 
+    def __init__(self, ns): # size of problems
+        print('Data collector')
+        print('For each n, the size of the problem will be N = n * np * (1024 / np)')
+        self.ns = ns
+    
+    # Real speedup and ideal speedup
+    def collect_data(self):
+
+        for n in self.ns:
+            os.system(f"./gen-plum.exe {n} {1}")
+            print(f"Collecting data for N = {n}k...")
+            print(f"Running algorithm with 1 processor...")
+            file = open(f"speedup_data_{n}k.txt", "w")
+
+            lines = [line.strip('\n') for line in os.popen(f"mpirun -np 1 ./cpu-4th")]
+            real_speed = float(re.search(r"(\d+\.\d+)", lines[-14]).group(1))
+            ideal = real_speed
+
+            file.write(f"{round(real_speed, 2)} {round(ideal, 2)}\n")
+
+            for p in range(2, 14):
+                print(f"Running algorithm with {p} processors...")
+                lines = [line.strip('\n') for line in os.popen(f"mpirun -np {p} ./cpu-4th")]
+                real_speed = float(re.search(r"(\d+\.\d+)", lines[-14]).group(1))
+                ideal_speed = ideal * p
+                file.write(f"{round(real_speed, 2)} {round(ideal_speed, 2)}\n")
+            
+            file.close()
+
+# Weak scalability analizer
 class Analizer():
 
-    def __init__(self):
+    def __init__(self, ns): # size of problems
         print('Performance analizer')
-        print('Choose n and np. The size of the problem will be N = n * np * (1024 / np)')
-        n = int(input('n: '))
-        npp = int(input('np: '))
-        os.system(f"./gen-plum.exe {n} {npp}")
-    
-    def collect_data(self):
-        experimental = []
-        theorical = []
-        print("Collecting data...")
-        print(f"Running algorithm with 1 processor...")
-        data = [line.strip('\n') for line in os.popen(f"mpirun -np 1 ./cpu-4th")]
-        real_speed = re.search(r"(\d+\.\d+)", data[-14])
-        real_speed = float(real_speed.group(1))
-        ideal_speed = re.search(r"(\d+\.\d+)", data[-14]) # Ideal Speed = 14.059 GFlops
-        ideal_speed = float(ideal_speed.group(1))
-        experimental.append(real_speed)
-        theorical.append(ideal_speed)
-        for p in range(2, 14):
-            print(f"Running algorithm with {p} processors...")
-            data = [line.strip('\n') for line in os.popen(f"mpirun -np {p} ./cpu-4th")]
-            real_speed = re.search(r"(\d+\.\d+)", data[-14])
-            real_speed = float(real_speed.group(1))
-            ideal_speed = theorical[0] * p
-            experimental.append(real_speed)
-            theorical.append(ideal_speed)
-        self.experimental = experimental
-        self.theorical = theorical
+        print('For each n, the size of the problem will be N = n * np * (1024 / np)')
+        self.ns = ns
 
     def speedup_analysis(self):
         print("Speedup analysis")
-        table_data = []
 
-        for p in range(1, 14):
-            table_data.append([p, round(self.experimental[p - 1], 2)])
 
-        headers = ["Processors", "Speedup"]
-        print(tabulate(table_data, headers, tablefmt="pretty"))
+        for n in self.ns:
+            # read data
+            file = open(f"speedup_data_{n}k.txt", "r")
+            lines = file.readlines()
 
-        plt.plot(range(1, 14), self.experimental)
-        plt.plot(range(1, 14), self.theorical)
+            # push into an array
+            experimental = []
+            theorical = []
+            for line in lines:
+                line = line.split()
+                experimental.append(float(line[0]))
+                theorical.append(float(line[1]))
+            
+            table_data = []
+            for p in range(1, 14):
+                table_data.append([p, experimental[p - 1]])
+
+            headers = ["Processors", "Speedup"]
+            print(f"Metrics N = {n}k")
+            print(tabulate(table_data, headers, tablefmt="pretty"))
+
+            plt.plot(range(1, 14), theorical, label=f"N = {n}k theorical")
+            plt.plot(range(1, 14), experimental, label=f"N = {n}k experimental")
+            
+
+            # Compute similarities
+            exp_data = np.array([[i + 1, val] for i, val in enumerate(experimental)])
+            ref_data = np.array([[i + 1, 1] for i in range(13)])
+            pcm = similaritymeasures.pcm(exp_data, ref_data)
+            df = similaritymeasures.frechet_dist(exp_data, ref_data)
+            area = similaritymeasures.area_between_two_curves(exp_data, ref_data)
+            cl = similaritymeasures.curve_length_measure(exp_data, ref_data)
+            dtw, d = similaritymeasures.dtw(exp_data, ref_data)
+            # mean absolute error
+            mae = similaritymeasures.mae(exp_data, ref_data)
+            # mean squared error
+            mse = similaritymeasures.mse(exp_data, ref_data)
+            headers = ["pcm", "df", "area", "cl", "dtw", "mae", "mse"]
+            table_data = [[round(pcm, 2), round(df, 2), round(area, 2), round(cl, 2), round(dtw, 2), round(mae, 2), round(mse, 2)]]
+            print(tabulate(table_data, headers, tablefmt="pretty"))
+
+        plt.legend()
+
+        plt.plot(4, 4000, 'o')
         plt.show()
-
-        # Compute similarities
-        exp_data = np.array([[i + 1, val] for i, val in enumerate(self.experimental)])
-        ref_data = np.array([[i + 1, 1] for i in range(13)])
-
-        pcm = similaritymeasures.pcm(exp_data, ref_data)
-        df = similaritymeasures.frechet_dist(exp_data, ref_data)
-        area = similaritymeasures.area_between_two_curves(exp_data, ref_data)
-        cl = similaritymeasures.curve_length_measure(exp_data, ref_data)
-        dtw, d = similaritymeasures.dtw(exp_data, ref_data)
-        # mean absolute error
-        mae = similaritymeasures.mae(exp_data, ref_data)
-        # mean squared error
-        mse = similaritymeasures.mse(exp_data, ref_data)
-        headers = ["pcm", "df", "area", "cl", "dtw", "mae", "mse"]
-        table_data = [[round(pcm, 2), round(df, 2), round(area, 2), round(cl, 2), round(dtw, 2), round(mae, 2), round(mse, 2)]]
-        print(tabulate(table_data, headers, tablefmt="pretty"))
-
+        
         # Write conclusions
-        criterio = pcm >= 10
-        if criterio:
-            print("The algorithm is scalable.")
-        else:
-            print("The algorithm is NOT scalable.")
+        # criterio = pcm >= 10
+        # if criterio:
+        #     print("The algorithm is scalable.")
+        # else:
+        #     print("The algorithm is NOT scalable.")
 
     def scalability_analysis(self):
         print("Scalability analysis")
-        
-        table_data = []
-        for p in range(1, 14):
-            self.experimental[p - 1] /= (p * self.theorical[0])
-            table_data.append([p, round(self.experimental[p - 1], 2)])
-        
-        headers = ["Processors", "Efficiency"]
-        print(tabulate(table_data, headers, tablefmt="pretty"))
-    
-        plt.plot(range(1, 14), self.experimental)
-        plt.plot(range(1, 14), 13 * [1])
+
+        plt.plot(range(1, 14), 13 * [1], '-o', label="Ideal")
+
+        for n in self.ns:
+            # read data
+            file = open(f"speedup_data_{n}k.txt", "r")
+            lines = file.readlines()
+            # push into an array
+            experimental = []
+            theorical = []
+            for line in lines:
+                line = line.split()
+                experimental.append(float(line[0]))
+                theorical.append(float(line[1]))
+
+            table_data = []
+            for p in range(1, 14):
+                experimental[p - 1] /= (p * theorical[0])
+                table_data.append([p, round(experimental[p - 1], 2)])
+
+            headers = ["Processors", "Efficiency"]
+            print(tabulate(table_data, headers, tablefmt="pretty"))
+
+            plt.plot(range(1, 14), experimental, '-o', label=f"N = {n}k experimental")
+ 
+            
+
+            exp_data = np.array([[i + 1, val] for i, val in enumerate(experimental)])
+            ref_data = np.array([[i + 1, 1] for i in range(13)])
+
+            # Compute similarities
+            pcm = similaritymeasures.pcm(exp_data, ref_data)
+            df = similaritymeasures.frechet_dist(exp_data, ref_data)
+            area = similaritymeasures.area_between_two_curves(exp_data, ref_data)
+            cl = similaritymeasures.curve_length_measure(exp_data, ref_data)
+            dtw, d = similaritymeasures.dtw(exp_data, ref_data)
+            # mean absolute error
+            mae = similaritymeasures.mae(exp_data, ref_data)
+            # mean squared error
+            mse = similaritymeasures.mse(exp_data, ref_data)
+
+            headers = ["pcm", "df", "area", "cl", "dtw", "mae", "mse"]
+            table_data = [[round(pcm, 2), round(df, 2), round(area, 2), round(cl, 2), round(dtw, 2), round(mae, 2), round(mse, 2)]]
+            print(tabulate(table_data, headers, tablefmt="pretty"))
+
+
+        plt.title("Weak scaling analysis (N-Body algorithms)")
+        plt.xlabel("Number of processors (p)")
+        plt.ylabel("Efficiency (E = S / p)")
+
+        plt.legend()
         plt.show()
+        # # Write conclusions
+        # criterio = pcm >= 10
 
-        exp_data = np.array([[i + 1, val] for i, val in enumerate(self.experimental)])
-        ref_data = np.array([[i + 1, 1] for i in range(13)])
-
-        # Compute similarities
-        pcm = similaritymeasures.pcm(exp_data, ref_data)
-        df = similaritymeasures.frechet_dist(exp_data, ref_data)
-        area = similaritymeasures.area_between_two_curves(exp_data, ref_data)
-        cl = similaritymeasures.curve_length_measure(exp_data, ref_data)
-        dtw, d = similaritymeasures.dtw(exp_data, ref_data)
-        # mean absolute error
-        mae = similaritymeasures.mae(exp_data, ref_data)
-        # mean squared error
-        mse = similaritymeasures.mse(exp_data, ref_data)
-
-        headers = ["pcm", "df", "area", "cl", "dtw", "mae", "mse"]
-        table_data = [[round(pcm, 2), round(df, 2), round(area, 2), round(cl, 2), round(dtw, 2), round(mae, 2), round(mse, 2)]]
-        print(tabulate(table_data, headers, tablefmt="pretty"))
-
-        # Write conclusions
-        criterio = pcm >= 10
-
-        if criterio:
-            print("The algorithm is scalable.")
-        else:
-            print("The algorithm is NOT scalable.")
+        # if criterio:
+        #     print("The algorithm is scalable.")
+        # else:
+        #     print("The algorithm is NOT scalable.")
 
 
-analizer = Analizer()
-analizer.collect_data()
+ns =[1, 4, 8, 16]
+# ns = range(5, 9) # n = 1k, 2k, 3k, 4k
+# collector = DataCollector(ns)
+# collector.collect_data()
+
+
+analizer = Analizer(ns)
 analizer.speedup_analysis()
 analizer.scalability_analysis()
 
