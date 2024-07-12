@@ -8,6 +8,8 @@ from tabulate import tabulate
 import similaritymeasures
 import numpy as np
 
+from newton_raphson import f, f_prime, newton_raphson
+
 class DataCollector():
 
     def __init__(self, ns): # size of problems
@@ -107,7 +109,10 @@ class Analizer():
     def scalability_analysis(self):
         print("Scalability analysis")
 
-        plt.plot(range(1, 14), 13 * [1], '-o', label="Ideal")
+        plt.plot(range(1, 14), 13 * [1], label="Ideal")
+
+        weak_analysis = []
+        weak_analysis_p = []
 
         for n in self.ns:
             # read data
@@ -129,10 +134,8 @@ class Analizer():
             headers = ["Processors", "Efficiency"]
             print(tabulate(table_data, headers, tablefmt="pretty"))
 
-            plt.plot(range(1, 14), experimental, '-o', label=f"N = {n}k experimental")
+            plt.plot(range(1, 14), experimental, label=f"N = {n}k experimental")
  
-            
-
             exp_data = np.array([[i + 1, val] for i, val in enumerate(experimental)])
             ref_data = np.array([[i + 1, 1] for i in range(13)])
 
@@ -152,6 +155,15 @@ class Analizer():
             print(tabulate(table_data, headers, tablefmt="pretty"))
 
 
+
+            p_solution = round(newton_raphson(5, n)) 
+            print(f"{n}: La solución aproximada para p es: {p_solution}")
+
+            weak_analysis.append(float(lines[p_solution - 1].split()[0]) / (p_solution * theorical[0]))
+            weak_analysis_p.append(p_solution)
+
+        plt.plot(weak_analysis_p, weak_analysis, '--bo')
+
         plt.title("Weak scaling analysis (N-Body algorithms)")
         plt.xlabel("Number of processors (p)")
         plt.ylabel("Efficiency (E = S / p)")
@@ -167,14 +179,13 @@ class Analizer():
         #     print("The algorithm is NOT scalable.")
 
 
-ns =[1, 4, 8, 16]
-# ns = range(5, 9) # n = 1k, 2k, 3k, 4k
+ns = [8, 9, 12, 14, 16]
 # collector = DataCollector(ns)
 # collector.collect_data()
 
 
 analizer = Analizer(ns)
-analizer.speedup_analysis()
+# analizer.speedup_analysis()
 analizer.scalability_analysis()
 
 
