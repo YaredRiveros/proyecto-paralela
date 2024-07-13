@@ -15,6 +15,12 @@ class Analizer:
         self.problem_sizes = problem_sizes
         self.processors = processors
 
+    def set_processors(self, processors):
+        self.processors = processors
+    
+    def set_problem_sizes(self, problem_sizes):
+        self.problem_sizes = problem_sizes
+
     def speedup_analysis(self):
         print("Speedup analysis")
         
@@ -120,15 +126,18 @@ class Analizer:
 
         # Conclusiones
         if abs(slope) < 0.02:  # Umbral para considerar la pendiente cercana a cero
-            print(f"El algoritmo es escalable para problemas de tamaño {self.problem_sizes} con procesadores {self.processors}")
+            print(f"El algoritmo es escalable ", end="")
         else:
-            print(f"El algoritmo NO es escalable para problemas de tamaño {self.problem_sizes} con procesadores {self.processors}")
+            print(f"El algoritmo NO es escalable ", end="")  
+        print(f"para problemas de tamaño {self.problem_sizes}k. Algoritmo evaluado con {self.processors} procesadores.")
 
-# Number of processors
+
 processors = range(1, 14)
-# Sizes of the problems
-problem_sizes = [8, 9, 12, 14, 16]
+problem_sizes = [8, 12, 14, 16]
 analizer = Analizer(processors, problem_sizes)
+analizer.scalability_analysis()
 
-analizer.speedup_analysis()
+problem_sizes = [1, 2, 3, 4]
+analizer.set_problem_sizes(problem_sizes)
+analizer = Analizer(processors, problem_sizes)
 analizer.scalability_analysis()
