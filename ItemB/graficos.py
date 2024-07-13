@@ -21,7 +21,7 @@ curva_teorica_16k = (n_16k**2 / p) + (n_16k * np.log(p))
 # Gráfico para n = 8k
 plt.figure(figsize=(10, 6))
 plt.plot(p, tiempos_8k, 'o-', label='Experimental n=8k')
-plt.plot(p, curva_teorica_8k, 's--', label='Teórica n=8k (1/10^5)')
+plt.plot(p, curva_teorica_8k, 's--', label='Teórica n=8k')
 plt.xlabel('p')
 plt.ylabel('Tiempo (s)')
 # escala log
@@ -73,7 +73,7 @@ const_8k = res_8k.x[0]
 # Gráfico para n = 8k
 plt.figure(figsize=(10, 6))
 plt.plot(p, tiempos_8k, 'o-', label='Experimental n=8k')
-plt.plot(p, const_8k * curva_teorica_8k, 's--', label=f'Teórica n=8k ajustada (const={const_8k:.4f})')
+plt.plot(p, const_8k * curva_teorica_8k, 's--', label=f'Teórica n=8k ajustada (const={const_8k:.8f})')
 plt.xlabel('p')
 plt.ylabel('Tiempo (s)')
 plt.yscale('log')
@@ -90,7 +90,7 @@ const_9k = res_9k.x[0]
 # Gráfico para n = 9k
 plt.figure(figsize=(10, 6))
 plt.plot(p, tiempos_9k, 'o-', label='Experimental n=9k')
-plt.plot(p, const_9k * curva_teorica_9k, 's--', label=f'Teórica n=9k ajustada (const={const_9k:.4f})')
+plt.plot(p, const_9k * curva_teorica_9k, 's--', label=f'Teórica n=9k ajustada (const={const_9k:.8f})')
 plt.xlabel('p')
 plt.ylabel('Tiempo (s)')
 plt.yscale('log')
@@ -107,7 +107,7 @@ const_16k = res_16k.x[0]
 # Gráfico para n = 16k
 plt.figure(figsize=(10, 6))
 plt.plot(p, tiempos_16k, 'o-', label='Experimental n=16k')
-plt.plot(p, const_16k * curva_teorica_16k, 's--', label=f'Teórica n=16k ajustada (const={const_16k:.4f})')
+plt.plot(p, const_16k * curva_teorica_16k, 's--', label=f'Teórica n=16k ajustada (const={const_16k:.8f})')
 plt.xlabel('p')
 plt.ylabel('Tiempo (s)')
 plt.yscale('log')
