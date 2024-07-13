@@ -54,7 +54,7 @@ Se valida la relación entre las curvas teórica y experimental obtenidas, pues 
 
 ![comparacion_16k](ItemB/conConstante/comparacion_16k.png)
 
-(La constante de proporcionalidad es c=
+(La constante de proporcionalidad es const)
 
 Note que aún existe una ligera diferencia entre las curvas teóricas y experimentales. Esto puede deberse a que en la complejidad teórica no consideramos varios bucles lineales presentes en el código original, lo que provoca que la curva teórica disminuya más rápidamente con p que la experimental.
 
