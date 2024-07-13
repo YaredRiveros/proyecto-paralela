@@ -26,95 +26,106 @@ class Analizer:
         
         theoretical_sums = np.zeros(len(self.processors))
         count = 0
+        all_speedups = {p: [] for p in self.processors}
 
         for n in self.problem_sizes:
-            file = open(f"speedup_data_{n}k.txt", "r")
-            lines = file.readlines()
+            with open(f"speedup_data_{n}k.txt", "r") as file:
+                lines = file.readlines()
             lines = [lines[i - 1] for i in self.processors] 
 
             speedups = [float(line.split()[0]) for line in lines]
-            theorical = [float(line.split()[1]) for line in lines]
+            theoretical = [float(line.split()[1]) for line in lines]
 
-            table_data = [[p, speedups[p - 1]] for p in self.processors]
-
-            headers = ["Processors", "Speedup"]
-            print(f"Metrics N = {n}k")
-            print(tabulate(table_data, headers, tablefmt="pretty"))
+            for p, s in zip(self.processors, speedups):
+                all_speedups[p].append(round(s, 2))
 
             plt.plot(self.processors, speedups, label=f"N = {n}k experimental")
 
             # Compute similarities
-            exp_data = np.array([[i + 1, val] for i, val in enumerate(speedups)])
-            ref_data = np.array([[i + 1, 1] for i in range(len(self.processors))])
-            pcm = similaritymeasures.pcm(exp_data, ref_data)
-            df = similaritymeasures.frechet_dist(exp_data, ref_data)
-            area = similaritymeasures.area_between_two_curves(exp_data, ref_data)
-            cl = similaritymeasures.curve_length_measure(exp_data, ref_data)
-            dtw, d = similaritymeasures.dtw(exp_data, ref_data)
-            mae = similaritymeasures.mae(exp_data, ref_data) # mean absolute error
-            mse = similaritymeasures.mse(exp_data, ref_data) # mean squared error
-            headers = ["pcm", "df", "area", "cl", "dtw", "mae", "mse"]
-            table_data = [[round(pcm, 2), round(df, 2), round(area, 2), round(cl, 2), round(dtw, 2), round(mae, 2), round(mse, 2)]]
-            print(tabulate(table_data, headers, tablefmt="pretty"))
-            theoretical_sums += np.array(theorical)
+            # exp_data = np.array([[i + 1, val] for i, val in enumerate(speedups)])
+            # ref_data = np.array([[i + 1, 1] for i in range(len(self.processors))])
+            # pcm = similaritymeasures.pcm(exp_data, ref_data)
+            # df = similaritymeasures.frechet_dist(exp_data, ref_data)
+            # area = similaritymeasures.area_between_two_curves(exp_data, ref_data)
+            # cl = similaritymeasures.curve_length_measure(exp_data, ref_data)
+            # dtw, d = similaritymeasures.dtw(exp_data, ref_data)
+            # mae = similaritymeasures.mae(exp_data, ref_data)  # mean absolute error
+            # mse = similaritymeasures.mse(exp_data, ref_data)  # mean squared error
+            
+            # similarity_headers = ["pcm", "df", "area", "cl", "dtw", "mae", "mse"]
+            # similarity_data = [[round(pcm, 2), round(df, 2), round(area, 2), round(cl, 2), round(dtw, 2), round(mae, 2), round(mse, 2)]]
+            # print(tabulate(similarity_data, similarity_headers, tablefmt="pretty"))
+            
+            theoretical_sums += np.array(theoretical)
             count += 1
 
         theoretical_avg = theoretical_sums / count
         plt.plot(self.processors, theoretical_avg, label="Ideal speedup", linestyle='--')
 
+        # Creating the table with headers
+        headers = ["Processors"] + [f"Speedup (N = {n}k)" for n in self.problem_sizes]
+        data_table = [[p] + all_speedups[p] for p in self.processors]
+        
+        print("Metrics")
+        print(tabulate(data_table, headers, tablefmt="pretty"))
+
         plt.title("Speedup weak scaling analysis (N-Body algorithms)")
         plt.xlabel("Number of processors (p)")
-        plt.ylabel("Efficiency (E = S / p)")
+        plt.ylabel("Speedup (S)")
 
         plt.legend()
+        # plt.savefig('speedup_analysis.png')
         plt.show()
 
     def scalability_analysis(self):
-
         print("Scalability analysis")
-        plt.plot(self.processors, 13 * [1], label="Ideal efficiency")
+        plt.plot(self.processors, len(self.processors) * [1], label="Ideal efficiency")
 
         weak_analysis_e = []
         weak_analysis_p = []
+        all_efficiencies = {p: [] for p in self.processors}
 
         for n in self.problem_sizes:
-            file = open(f"speedup_data_{n}k.txt", "r")
-            lines = file.readlines()
+            with open(f"speedup_data_{n}k.txt", "r") as file:
+                lines = file.readlines()
             lines = [lines[i - 1] for i in self.processors] 
 
             # ideal speedup
-            theorical = float(lines[0].split()[1])
+            theoretical = float(lines[0].split()[1])
 
             # experimental speedups
             speedups = [float(line.split()[0]) for line in lines]
 
             # experimental efficiencies
-            efficiencies = [speedups[p - 1] / (p * theorical) for p in self.processors]
+            efficiencies = [speedups[p - 1] / (p * theoretical) for p in self.processors]
 
-            # show data / results
-            data_table = [[p, round(efficiencies[p - 1], 2)] for p in self.processors]
-            headers = ["Processors", "Efficiency"]
-            print(f"Metrics N = {n}k")
-            print(tabulate(data_table, headers, tablefmt="pretty"))
+            for p, e in zip(self.processors, efficiencies):
+                all_efficiencies[p].append(round(e, 2))
+
             plt.plot(self.processors, efficiencies, label=f"N = {n}k experimental")
 
             # Computing the optimal number of processors (p) for the size of the problem (n)
-            # based on the scalabity condition
+            # based on the scalability condition
             p_optimal = round(newton_raphson.newton_raphson(5, n))
-            e_optimal = float(lines[p_optimal - 1].split()[0]) / (p_optimal * theorical)
+            e_optimal = float(lines[p_optimal - 1].split()[0]) / (p_optimal * theoretical)
             weak_analysis_e.append(e_optimal)
             weak_analysis_p.append(p_optimal)
 
-        # Analizar los puntos weak_analysis_e y weak_analysis_p
+        # Creating the table with headers
+        headers = ["Processors"] + [f"Efficiency (N = {n}k)" for n in self.problem_sizes]
+        data_table = [[p] + all_efficiencies[p] for p in self.processors]
+        
+        print("Metrics")
+        print(tabulate(data_table, headers, tablefmt="pretty"))
+
+        # Analyzing the points weak_analysis_e and weak_analysis_p
         x = np.array(weak_analysis_p).reshape(-1, 1)
         y = np.array(weak_analysis_e).reshape(-1, 1)
         model = LinearRegression().fit(x, y)
         slope = model.coef_[0][0]
         intercept = model.intercept_[0]
-        # print(f"Pendiente de la regresión lineal: {slope}")
-        # print(f"Intersección con el eje y: {intercept}")
 
-        # Graficar los puntos y la línea de regresión
+        # Plotting the points and the regression line
         plt.plot(weak_analysis_p, weak_analysis_e, '--bo', label="Analysis points")
         plt.plot(weak_analysis_p, model.predict(x), 'r', linewidth=3, label="Regression line")
 
@@ -122,22 +133,22 @@ class Analizer:
         plt.xlabel("Number of processors (p)")
         plt.ylabel("Efficiency (E = S / p)")
         plt.legend()
+
+        # Conclusions
+        if abs(slope) < 0.02:  # Threshold to consider the slope close to zero
+            print(f"The algorithm is scalable ", end="")
+        else:
+            print(f"The algorithm is NOT scalable ", end="")
+        print(f"for problem sizes {self.problem_sizes}k. Algorithm evaluated with {self.processors} processors.")
+
+        # plt.savefig('scalability_analysis.png')
         plt.show()
 
-        # Conclusiones
-        if abs(slope) < 0.02:  # Umbral para considerar la pendiente cercana a cero
-            print(f"El algoritmo es escalable ", end="")
-        else:
-            print(f"El algoritmo NO es escalable ", end="")  
-        print(f"para problemas de tamaño {self.problem_sizes}k. Algoritmo evaluado con {self.processors} procesadores.")
-
-
 processors = range(1, 14)
-problem_sizes = [8, 12, 14, 16]
+problem_sizes = [8, 9, 12, 14, 16]
 analizer = Analizer(processors, problem_sizes)
 analizer.scalability_analysis()
 
 problem_sizes = [1, 2, 3, 4]
 analizer.set_problem_sizes(problem_sizes)
-analizer = Analizer(processors, problem_sizes)
 analizer.scalability_analysis()
