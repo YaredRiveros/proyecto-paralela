@@ -71,7 +71,7 @@ Además, en cada gráfica se incluye la curva de velocidad ideal, que se calcula
 ![itemc_conEscala](Itemc/comparacion_escalaLog.png)
 
 ### Análisis de escalabilidad
-A partir de las gráficas obtenidas, se puede afirmar que para valores de n menores a 16k y valores de p menores a 13, n crece con p, pero no idealmente. Esto, en su mayoría, es producto de la comunicación entre procesos para realizar operaciones como el Allreduce, que es el que aporta el término más grande de comunicación en el algoritmo.
+A partir de las gráficas obtenidas, se puede afirmar que para valores de n menores a 16k y valores de p menores a 13, n crece con p, pero no idealmente. Esto, en su mayoría, es producto de la comunicación entre procesos para realizar operaciones como el Allreduce, que es el que aporta el término más grande de comunicación en el algoritmo. Por tanto, para estos datos no se puede afirmar que el algoritmo sea escalable.
 
 Es muy probable que si aumentáramos el tamaño del problema o el número de procesos podríamos evidenciar una mejor escalabilidad (Spurzem et al., n.d.), pero el hardware utilizado nos limita a los valores empleados.
 
